@@ -564,15 +564,19 @@ std::ostream &operator<<(std::ostream &stream, const AuthorFingerprint &fp) {
 double fingerprintDistanceDict(const AuthorFingerprint &fp,
                                const InstructionPatternFrequencyMap &map1)
 {
-    double sum = 0.;
+    double sumErrors = 0., sum = 0.;
     for(auto fpit = fp.cbegin(); fpit != fp.cend(); fpit++) {
         auto mit = map1.m.find(fpit -> first);
-        if(mit == map1.m.end())
+        if(mit == map1.m.end()) {
+            sumErrors += sqr(fpit -> second);
             sum += sqr(fpit -> second);
-        else
-            sum += sqr((fpit -> second) - (mit -> second));
+        }
+        else {
+            sumErrors += sqr((fpit -> second) - (mit -> second));
+            sum += sqr(fpit -> second) + sqr(mit -> second);
+        }
     }
-    return sum / fp.size();
+    return sqrt(sumErrors / (fp.size() * sum));
 }
 
 void help(std::ostream &stream, const std::string programName) {

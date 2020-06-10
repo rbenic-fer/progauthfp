@@ -429,18 +429,24 @@ std::ostream &operator<<(std::ostream &stream, const AuthorFingerprint &fp) {
 }
 
 double fingerprintDistance(const AuthorFingerprint &fp1, const AuthorFingerprint &fp2) {
-    double sum = 0.;
+    double sumErrors = 0., sum = 0.;
     for(auto it1 = fp1.cbegin(); it1 != fp1.cend(); it1++) {
         auto it2 = fp2.find(it1 -> first);
-        if(it2 == fp2.end())
+        if(it2 == fp2.end()) {
+            sumErrors += sqr(it1 -> second);
             sum += sqr(it1 -> second);
-        else
-            sum += 2 * sqr((it1 -> second) - (it2 -> second));
+        }
+        else {
+            sumErrors += 2 * sqr((it1 -> second) - (it2 -> second));
+            sum += sqr(it1 -> second) + sqr(it2 -> second);
+        }
     }
     for(auto it2 = fp2.cbegin(); it2 != fp2.cend(); it2++)
-        if(fp1.find(it2 -> first) == fp1.end())
+        if(fp1.find(it2 -> first) == fp1.end()) {
+            sumErrors += sqr(it2 -> second);
             sum += sqr(it2 -> second);
-    return sum / (fp1.size() + fp2.size());
+        }
+    return sqrt(sumErrors / ((fp1.size() + fp2.size()) * sum));
 }
 
 void help(std::ostream &stream, const std::string programName) {

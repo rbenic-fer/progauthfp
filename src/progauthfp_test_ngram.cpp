@@ -461,15 +461,19 @@ std::ostream &operator<<(std::ostream &stream, const AuthorFingerprint &fp) {
 double fingerprintDistanceNGram(const AuthorFingerprint &fp,
                                 const std::vector<InstructionPatternFrequencyMap> &maps)
 {
-    double sum = 0.;
+    double sumErrors = 0., sum = 0.;
     for(auto fpit = fp.cbegin(); fpit != fp.cend(); fpit++) {
         auto mit = maps[fpit -> first.size()].m.find(fpit -> first);
-        if(mit == maps[fpit -> first.size()].m.end())
+        if(mit == maps[fpit -> first.size()].m.end()) {
+            sumErrors += sqr(fpit -> second);
             sum += sqr(fpit -> second);
-        else
-            sum += sqr((fpit -> second) - (mit -> second));
+        }
+        else {
+            sumErrors += sqr((fpit -> second) - (mit -> second));
+            sum += sqr(fpit -> second) + sqr(mit -> second);
+        }
     }
-    return sum / fp.size();
+    return sqrt(sumErrors / (fp.size() * sum));
 }
 
 void help(std::ostream &stream, const std::string programName) {
