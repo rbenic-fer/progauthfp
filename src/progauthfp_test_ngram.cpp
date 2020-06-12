@@ -362,8 +362,8 @@ AuthorFingerprint parseFingerprintNGram(const std::string &fileName, int &nMin, 
     std::ifstream inputFile(fileName);
     AuthorFingerprint sol;
 
-    nMin = 0;
-    nMax = INT_MAX;
+    nMin = INT_MAX;
+    nMax = 0;
     if(inputFile.eof())
         return sol;
 
