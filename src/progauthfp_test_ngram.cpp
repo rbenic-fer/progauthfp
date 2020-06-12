@@ -428,33 +428,6 @@ double sampleVariance(const std::vector<double> &sample, double mean) {
     return sum / (sample.size() - 1);
 }
 
-AuthorFingerprint aggregate(const std::vector<AuthorFingerprint> &v, double varianceThreshold) {
-    AuthorFingerprint sol;
-    for(std::size_t i = 0; i < v.size(); i++)
-        for(auto it = v[i].cbegin(); it != v[i].cend(); it++) {
-            std::size_t j;
-            for(j = 0; j < i; j++)
-                if(v[j].find(it -> first) != v[j].end())
-                    break;
-
-            if(j < i)
-                continue;
-
-            std::vector<double> sample(i, 0.);
-            sample.push_back(it -> second);
-            for(j = i + 1; j < v.size(); j++) {
-                auto it2 = v[j].find(it -> first);
-                if(it2 != v[j].end())
-                    sample.push_back(it2 -> second);
-            }
-
-            double mean = sampleMean(sample);
-            if(sampleVariance(sample, mean) < varianceThreshold)
-                sol[it -> first] = mean;
-        }
-    return sol;
-}
-
 std::ostream &operator<<(std::ostream &stream, const AuthorFingerprint &fp) {
     for(auto it = fp.cbegin(); it != fp.cend(); it++)
         stream << (it -> first) << (it -> second) << "\n\n";

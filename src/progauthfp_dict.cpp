@@ -378,8 +378,10 @@ std::vector<InstructionPattern> parseDictionary(
         std::string str;
         std::getline(inputFile, str);
         if(str.empty()) {
-            sol.push_back(parsePattern(strings, formats));
-            strings = std::vector<std::string>();
+            if(!strings.empty()) {
+                sol.push_back(parsePattern(strings, formats));
+                strings = std::vector<std::string>();
+            }
         }
         else
             strings.push_back(str);
