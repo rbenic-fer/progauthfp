@@ -1,3 +1,4 @@
+#include <climits>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -171,8 +172,12 @@ BitStringMap opCodeMap;
 std::istream &operator>>(std::istream &stream, SimplifiedInstruction &inst) {
     inst.clearArguments();
 
+    std::string opCodeStr;
+    stream >> opCodeStr;
+
+    std::istringstream strIn(opCodeStr);
     BitString opCode;
-    stream >> opCode;
+    strIn >> opCode;
 
     BitStringMap::iterator mapEntry = opCodeMap.find(opCode);
     if(mapEntry == opCodeMap.end()) {
@@ -333,8 +338,6 @@ std::vector<BinaryInstruction> parseInstructions(
     return sol;
 }
 
-const int DEFAULT_N_MIN = 2, DEFAULT_N_MAX = 10;
-
 InstructionPatternFrequencyMap mapNGramsWithN(const std::vector<BinaryInstruction> &code, int n)
 {
     InstructionPatternFrequencyMap sol;
@@ -360,7 +363,7 @@ AuthorFingerprint parseFingerprintNGram(const std::string &fileName, int &nMin, 
     AuthorFingerprint sol;
 
     nMin = 0;
-    nMax = 0;
+    nMax = INT_MAX;
     if(inputFile.eof())
         return sol;
 
@@ -459,18 +462,23 @@ std::ostream &operator<<(std::ostream &stream, const AuthorFingerprint &fp) {
 }
 
 double fingerprintDistanceNGram(const AuthorFingerprint &fp,
-                                const std::vector<InstructionPatternFrequencyMap> &maps)
+                                const std::vector<InstructionPatternFrequencyMap> &maps,
+                                int nMin)
 {
     double sumErrors = 0., sum = 0.;
     for(auto fpit = fp.cbegin(); fpit != fp.cend(); fpit++) {
-        auto mit = maps[fpit -> first.size()].m.find(fpit -> first);
-        if(mit == maps[fpit -> first.size()].m.end()) {
+        int midx = (fpit -> first).size() - nMin;
+
+        auto mit = maps[midx].m.find(fpit -> first);
+        if(mit == maps[midx].m.end()) {
             sumErrors += sqr(fpit -> second);
             sum += sqr(fpit -> second);
         }
         else {
-            sumErrors += sqr((fpit -> second) - (mit -> second));
-            sum += sqr(fpit -> second) + sqr(mit -> second);
+            double mfreq = (mit -> second) / (double)maps[midx].n;
+
+            sumErrors += sqr((fpit -> second) - mfreq);
+            sum += sqr(fpit -> second) + sqr(mfreq);
         }
     }
     return sqrt(sumErrors / (fp.size() * sum));
@@ -635,7 +643,7 @@ int main(int argc, char **argv) {
     int nMin, nMax;
     AuthorFingerprint fp = parseFingerprintNGram(fingerprintFile, nMin, nMax);
     double conf = fingerprintDistanceNGram(
-                      fp, mapNGrams(parseInstructions(programFile, formats), nMin, nMax));
+                      fp, mapNGrams(parseInstructions(programFile, formats), nMin, nMax), nMin);
 
     if(!quiet) {
         std::cout << "Fingerprint " << fingerprintFile << " and program " << programFile;

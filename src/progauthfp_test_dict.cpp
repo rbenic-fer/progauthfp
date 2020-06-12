@@ -192,8 +192,12 @@ BitStringMap opCodeMap;
 std::istream &operator>>(std::istream &stream, SimplifiedInstruction &inst) {
     inst.clearArguments();
 
+    std::string opCodeStr;
+    stream >> opCodeStr;
+
+    std::istringstream strIn(opCodeStr);
     BitString opCode;
-    stream >> opCode;
+    strIn >> opCode;
 
     BitStringMap::iterator mapEntry = opCodeMap.find(opCode);
     if(mapEntry == opCodeMap.end()) {
@@ -572,8 +576,10 @@ double fingerprintDistanceDict(const AuthorFingerprint &fp,
             sum += sqr(fpit -> second);
         }
         else {
-            sumErrors += sqr((fpit -> second) - (mit -> second));
-            sum += sqr(fpit -> second) + sqr(mit -> second);
+            double mfreq = (mit -> second) / (double)map1.n;
+
+            sumErrors += sqr((fpit -> second) - mfreq);
+            sum += sqr(fpit -> second) + sqr(mfreq);
         }
     }
     return sqrt(sumErrors / (fp.size() * sum));

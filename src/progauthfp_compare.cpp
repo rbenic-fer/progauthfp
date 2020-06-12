@@ -171,8 +171,12 @@ BitStringMap opCodeMap;
 std::istream &operator>>(std::istream &stream, SimplifiedInstruction &inst) {
     inst.clearArguments();
 
+    std::string opCodeStr;
+    stream >> opCodeStr;
+
+    std::istringstream strIn(opCodeStr);
     BitString opCode;
-    stream >> opCode;
+    strIn >> opCode;
 
     BitStringMap::iterator mapEntry = opCodeMap.find(opCode);
     if(mapEntry == opCodeMap.end()) {
